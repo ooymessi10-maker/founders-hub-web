@@ -27,7 +27,13 @@ const currentWeek = Math.ceil((now.getDay() + 1 + days) / 7);
     const userVotes = votes.filter((v: any) => v.voter === selectedVoter && v.type === voteType);
     
     if (voteType === 'ซ้อม') {
-      const thisWeekVotes = userVotes.filter((v: any) => new Date(v.date).getWeek() === currentWeek);
+      const thisWeekVotes = userVotes.filter((v: any) => {
+        const d = new Date(v.date);
+        const start = new Date(d.getFullYear(), 0, 1);
+        const days = Math.floor((d.getTime() - start.getTime()) / (24 * 60 * 60 * 1000));
+        const voteWeek = Math.ceil((d.getDay() + 1 + days) / 7);
+        return voteWeek === currentWeek;
+    });
       if (thisWeekVotes.length >= 1) return alert('สัปดาห์นี้คุณโหวตซ้อมไปแล้วครับ');
     } else {
       const thisMonthVotes = userVotes.filter((v: any) => new Date(v.date).getMonth() === currentMonth);
