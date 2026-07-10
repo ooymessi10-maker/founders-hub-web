@@ -5,15 +5,27 @@ import Header from '../../components/Header';
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState<any[]>([]);
   const API_URL = 'https://api.sheety.co/c49b688b76bfd05a6483628aab690ffa/foundersData/schedules';
-  const [playerName, setPlayerName] = useState(localStorage.getItem('savedPlayerName') || '');
+  const [playerName, setPlayerName] = useState('');
+
+  // แก้ไขตรงนี้: ย้ายการดึง localStorage มาไว้ใน useEffect เพื่อป้องกัน Error
+  useEffect(() => {
+    const savedName = localStorage.getItem('savedPlayerName') || '';
+    setPlayerName(savedName);
+    fetchSchedules();
+  }, []);
 
   const fetchSchedules = async () => {
-    const res = await fetch(API_URL);
-    const data = await res.json();
-    setSchedules(data.schedules || []);
+    try {
+      const res = await fetch(API_URL);
+      const data = await res.json();
+      setSchedules(data.schedules || []);
+    } catch (error) { console.error("Error:", error); }
   };
 
-  useEffect(() => { fetchSchedules(); }, []);
+  const updateNameInStorage = (name: string) => {
+    setPlayerName(name);
+    localStorage.setItem('savedPlayerName', name);
+  };
 
   const handleAttendance = async (item: any, status: 'ไป' | 'ไม่ไป') => {
     if (!playerName.trim()) return alert('ใส่ชื่อก่อนครับ');
@@ -35,7 +47,12 @@ export default function SchedulePage() {
   return (
     <div className="min-h-screen bg-pink-50 pb-20 p-6">
       <Header />
-      <input className="w-full p-4 mb-6 rounded-xl border" placeholder="ชื่อของคุณ" value={playerName} onChange={(e) => { setPlayerName(e.target.value); localStorage.setItem('savedPlayerName', e.target.value); }} />
+      <input 
+        className="w-full p-4 mb-6 rounded-xl border" 
+        placeholder="ชื่อของคุณ" 
+        value={playerName} 
+        onChange={(e) => updateNameInStorage(e.target.value)} 
+      />
       
       <div className="space-y-6">
         {schedules.map((item) => (
