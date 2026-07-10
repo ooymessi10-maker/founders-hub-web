@@ -17,7 +17,10 @@ export default function VotePage() {
     
     const votes = JSON.parse(localStorage.getItem('teamVotes') || '[]');
     const now = new Date();
-    const currentWeek = now.getWeek(); // ฟังก์ชันช่วยเช็คสัปดาห์
+const startOfYear = new Date(now.getFullYear(), 0, 1);
+const days = Math.floor((now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000));
+const currentWeek = Math.ceil((now.getDay() + 1 + days) / 7);
+    // ฟังก์ชันช่วยเช็คสัปดาห์
     const currentMonth = now.getMonth();
 
     // เช็คโควต้า
