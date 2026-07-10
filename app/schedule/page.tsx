@@ -4,6 +4,7 @@ import Header from '../../components/Header';
 
 export default function SchedulePage() {
   const [schedules, setSchedules] = useState<any[]>([]);
+  // ตรวจสอบให้แน่ใจว่าลิงก์นี้ตรงกับที่ตั้งค่าใน Sheety
   const API_URL = 'https://api.sheety.co/c49b688b76bfd05a6483628aab690ffa/foundersData/schedules';
 
   const [newTitle, setNewTitle] = useState('');
@@ -15,6 +16,7 @@ export default function SchedulePage() {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
+      // เช็คว่า data.schedules มีค่าหรือไม่
       setSchedules(data.schedules || []);
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -25,11 +27,13 @@ export default function SchedulePage() {
     fetchSchedules();
   }, []);
 
-  // ฟังก์ชันแปลงวันที่ให้เป็น วัน/เดือน/ปี
-  const formatDate = (dateString: string) => {
+  // ฟังก์ชันแปลงวันที่ที่ดึงมาจาก Sheets ให้เป็นรูปแบบไทย
+  const formatDisplayDate = (dateString: string) => {
     if (!dateString) return '';
-    const [year, month, day] = dateString.split('-');
-    return `${day}/${month}/${year}`;
+    // ถ้าวันที่ใน Sheets เป็น YYYY-MM-DD
+    const parts = dateString.split('-');
+    if (parts.length === 3) return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    return dateString;
   };
 
   const addSchedule = async () => {
@@ -43,11 +47,11 @@ export default function SchedulePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      alert('บันทึกตารางเรียบร้อยครับ!');
+      alert('บันทึกตารางเรียบร้อย!');
       setNewTitle('');
       fetchSchedules();
     } catch (error) {
-      alert('บันทึกข้อมูลไม่สำเร็จครับ');
+      alert('บันทึกไม่สำเร็จ ลองเช็ค Google Sheets อีกทีครับ');
     }
   };
 
@@ -73,14 +77,18 @@ export default function SchedulePage() {
 
         <h2 className="text-xl font-bold text-slate-800 mb-4">ตารางกิจกรรมทีม</h2>
         <div className="space-y-6">
-          {schedules.map((item, index) => (
-            <div key={index} className="bg-white p-5 rounded-2xl shadow-sm border border-pink-100">
-              <h3 className="font-bold text-slate-800">{item.title}</h3>
-              <p className="text-xs text-slate-500">
-                วันที่ {formatDate(item.date)} เวลา {item.time} น. | {item.type}
-              </p>
-            </div>
-          ))}
+          {schedules.length > 0 ? (
+            schedules.map((item, index) => (
+              <div key={index} className="bg-white p-5 rounded-2xl shadow-sm border border-pink-100">
+                <h3 className="font-bold text-slate-800">{item.title}</h3>
+                <p className="text-xs text-slate-500">
+                  วันที่ {formatDisplayDate(item.date)} เวลา {item.time} น. | {item.type}
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-slate-400">ยังไม่มีข้อมูลในตารางครับ (ลองกรอกเพิ่มดูนะครับ!)</p>
+          )}
         </div>
       </div>
     </div>
