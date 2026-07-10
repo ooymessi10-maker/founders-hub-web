@@ -11,12 +11,11 @@ export default function SchedulePage() {
   const [newTime, setNewTime] = useState('');
   const [newType, setNewType] = useState('ซ้อม');
 
-  // ดึงข้อมูลจาก Google Sheets
   const fetchSchedules = async () => {
     try {
       const response = await fetch(API_URL);
       const data = await response.json();
-      setSchedules(data.schedules);
+      setSchedules(data.schedules || []);
     } catch (error) {
       console.error("Error fetching data:", error);
     }
@@ -26,18 +25,17 @@ export default function SchedulePage() {
     fetchSchedules();
   }, []);
 
-  // บันทึกตารางใหม่ลง Google Sheets
+  // ฟังก์ชันแปลงวันที่ให้เป็น วัน/เดือน/ปี
+  const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    const [year, month, day] = dateString.split('-');
+    return `${day}/${month}/${year}`;
+  };
+
   const addSchedule = async () => {
     if (!newTitle || !newDate || !newTime) return alert('กรุณากรอกข้อมูลให้ครบครับ');
     
-    const body = {
-      schedules: {
-        title: newTitle,
-        date: newDate,
-        time: newTime,
-        type: newType
-      }
-    };
+    const body = { schedules: { title: newTitle, date: newDate, time: newTime, type: newType } };
 
     try {
       await fetch(API_URL, {
@@ -45,9 +43,9 @@ export default function SchedulePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)
       });
-      alert('บันทึกตารางลง Google Sheets แล้ว!');
+      alert('บันทึกตารางเรียบร้อยครับ!');
       setNewTitle('');
-      fetchSchedules(); // ดึงข้อมูลใหม่มาโชว์
+      fetchSchedules();
     } catch (error) {
       alert('บันทึกข้อมูลไม่สำเร็จครับ');
     }
@@ -58,7 +56,7 @@ export default function SchedulePage() {
       <Header />
       <div className="p-6">
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-pink-100 mb-8">
-          <h2 className="text-lg font-bold text-slate-800 mb-4">➕ สร้างตารางใหม่ (Sync to Sheets)</h2>
+          <h2 className="text-lg font-bold text-slate-800 mb-4">➕ สร้างตารางใหม่</h2>
           <div className="space-y-3">
             <input type="text" placeholder="ชื่อนัดหมาย" className="w-full p-3 rounded-xl border border-pink-200" value={newTitle} onChange={(e) => setNewTitle(e.target.value)} />
             <div className="flex gap-3">
@@ -78,7 +76,9 @@ export default function SchedulePage() {
           {schedules.map((item, index) => (
             <div key={index} className="bg-white p-5 rounded-2xl shadow-sm border border-pink-100">
               <h3 className="font-bold text-slate-800">{item.title}</h3>
-              <p className="text-xs text-slate-500">วันที่ {item.date} เวลา {item.time} น. | {item.type}</p>
+              <p className="text-xs text-slate-500">
+                วันที่ {formatDate(item.date)} เวลา {item.time} น. | {item.type}
+              </p>
             </div>
           ))}
         </div>
