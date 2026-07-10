@@ -67,6 +67,3 @@ const currentWeek = Math.ceil((now.getDay() + 1 + days) / 7);
     </div>
   );
 }
-
-
-};
